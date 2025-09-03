@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "name": "Product A",
+    "reference": "REF001",
+    "price": 100,
+    "rating": 4
+  },
+  {
+    "id": 3,
+    "name": "Product C",
+    "reference": "REF003",
+    "price": 200,
+    "rating": 5
+  },
+  {
+    "id": 4,
+    "name": "Product modifié",
+    "reference": "REF004",
+    "price": 80,
+    "rating": 2
+  },
+  {
+    "id": 5,
+    "name": "Product E",
+    "reference": "REF005",
+    "price": 120,
+    "rating": 3
+  },
+  {
+    "id": 6,
+    "name": "Product F",
+    "reference": "REF006",
+    "price": 250,
+    "rating": 5
+  },
+  {
+    "id": 7,
+    "name": "Product G",
+    "reference": "REF007",
+    "price": 90,
+    "rating": 1
+  },
+  {
+    "id": 8,
+    "name": "Product H",
+    "reference": "REF008",
+    "price": 300,
+    "rating": 4
+  },
+  {
+    "id": 9,
+    "name": "Product I",
+    "reference": "REF009",
+    "price": 50,
+    "rating": 2
+  },
+  {
+    "id": 10,
+    "name": "Product J",
+    "reference": "REF010",
+    "price": 400,
+    "rating": 5
+  },
+  {
+    "id": 11,
+    "name": "Product ajout",
+    "reference": "Ref0011",
+    "price": 10,
+    "rating": 2
+  }
+]

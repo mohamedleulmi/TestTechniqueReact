@@ -8,6 +8,7 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
+      - ./backend/resources/products.json:/app/resources/products.json
     environment:
       - NODE_ENV=development
 

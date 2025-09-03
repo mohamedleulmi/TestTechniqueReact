@@ -1,20 +1,13 @@
 import { Router } from "express";
 import type { Product } from "../models/Products";
+import fs from "fs";
+import path from "path";
 
 const router = Router();
 
-let products: Product[] = [
-  { id: 1, name: "Produit 1", reference: "REF001", price: 10.5, rating: 4 },
-  { id: 2, name: "Produit 2", reference: "REF002", price: 15, rating: 3 },
-  { id: 3, name: "Produit 3", reference: "REF003", price: 12.5, rating: 5 },
-  { id: 4, name: "Produit 4", reference: "REF004", price: 8, rating: 2 },
-  { id: 5, name: "Produit 5", reference: "REF005", price: 20, rating: 1 },
-  { id: 6, name: "Produit 6", reference: "REF006", price: 9.5, rating: 4 },
-  { id: 7, name: "Produit 7", reference: "REF007", price: 14, rating: 3 },
-  { id: 8, name: "Produit 8", reference: "REF008", price: 11, rating: 5 },
-  { id: 9, name: "Produit 9", reference: "REF009", price: 18, rating: 2 },
-  { id: 10, name: "Produit 10", reference: "REF010", price: 7.5, rating: 0 },
-];
+const productsFile = path.join(__dirname, "..", "..", "resources", "products.json");
+
+let products = JSON.parse(fs.readFileSync(productsFile, "utf-8"));
 
 router.get("/", (_req, res) => {
   res.json(products);
@@ -24,10 +17,11 @@ router.post("/", (req, res) => {
   const newProduct = req.body as Product;
 
   // Générer un ID unique
-  const maxId = products.length ? Math.max(...products.map(p => p.id)) : 0;
+  const maxId = products.length ? Math.max(...products.map((p:Product) => p.id)) : 0;
   newProduct.id = maxId + 1;
   
   products.push(newProduct);
+  fs.writeFileSync(productsFile, JSON.stringify(products, null, 2));
   res.status(201).json(newProduct);
 });
 
@@ -35,20 +29,20 @@ router.put("/:id", (req, res) => {
   const { id } = req.params;
   const updatedProduct = req.body;
 
-  const index = products.findIndex((p) => p.id === parseInt(id));
+  const index = products.findIndex((p:Product) => p.id === parseInt(id));
   if (index === -1) return res.status(404).json({ message: "Product not found" });
 
   products[index] = { ...products[index], ...updatedProduct };
+  fs.writeFileSync(productsFile, JSON.stringify(products, null, 2));
   res.json(products[index]);
 });
 
 router.delete("/:id", (req, res) => {
   const { id } = req.params;
-  const index = products.findIndex((p) => p.id === parseInt(id));
-  if (index === -1) return res.status(404).json({ message: "Product not found" });
+  products = products.filter((p: Product) => p.id !== parseInt(id));
 
-  const deleted = products.splice(index, 1)[0];
-  res.json(deleted);
+  fs.writeFileSync(productsFile, JSON.stringify(products, null, 2));
+  res.status(204).send();
 });
 
 export default router;
