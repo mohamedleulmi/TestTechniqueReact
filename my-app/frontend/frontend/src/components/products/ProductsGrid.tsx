@@ -14,10 +14,12 @@ import ProductService from "./ProductService";
 import Box from "@mui/material/Box";
 import { RatingEditInputCell } from "./RatingEditInputCell";
 import Rating from "@mui/material/Rating";
+import { Alert, Snackbar } from "@mui/material";
 
 const ProductsGrid: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [rowModesModel, setRowModesModel] = useState<GridRowModesModel>({});
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -31,16 +33,36 @@ const ProductsGrid: React.FC = () => {
     loadProducts();
   }, []);
 
+  const validateProduct = (newRow: Product): string | null => {
+    if (newRow.price < 0) return "Price must be greater than or equal to 0";
+
+    const duplicate = products.find(
+      (p) => p.id !== newRow.id && p.reference === newRow.reference
+    );
+    if (duplicate) return "Reference must be unique";
+
+    return null;
+  };
+
   const handleRowUpdate = async (newRow: Product) => {
-  try {
-    const updated = await ProductService.updateProduct(newRow);
-    setProducts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
-    return updated;
-  } catch (error) {
-    console.error("Failed to update product:", error);
-    return newRow;
-  }
-};
+  const error = validateProduct(newRow);
+    if (error) {
+      setErrorMessage(error);
+      throw new Error(error);
+    }
+
+    try {
+      const updated = await ProductService.updateProduct(newRow);
+      setProducts((prev) =>
+        prev.map((p) => (p.id === updated.id ? updated : p))
+      );
+      return updated;
+    } catch (err) {
+      setErrorMessage("Failed to update product");
+      console.error(err);
+      return newRow;
+    }
+  };
 
   const handleEditClick = (id: GridRowId) => () => {
     setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.Edit } });
@@ -104,7 +126,20 @@ const ProductsGrid: React.FC = () => {
         pageSizeOptions={[5]}
         checkboxSelection
         disableRowSelectionOnClick
+        onProcessRowUpdateError={(error) => console.error(error)}
       />
+      <Snackbar
+        open={Boolean(errorMessage)}
+        autoHideDuration={4000}
+        onClose={() => setErrorMessage(null)}
+        message={errorMessage}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        > 
+        <Alert severity="error" onClose={() => setErrorMessage(null)} sx={{ mb: 2 }}>
+          {errorMessage}
+        </Alert>
+        </Snackbar>
+        
     </Box>
   );
 };
