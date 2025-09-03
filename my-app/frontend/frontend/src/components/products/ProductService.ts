@@ -10,7 +10,7 @@ export default class ProductService {
     return (await res.json()) as Product[];
   }
 
-  // Ajoute un nouveau produit sur le backend
+
   static async addProduct(product: Product): Promise<Product> {
     const res = await fetch(this.API_URL_PRODUCTS, {
       method: "POST",
@@ -21,7 +21,6 @@ export default class ProductService {
     return (await res.json()) as Product;
   }
 
-  // Met à jour un produit (tu peux faire PUT si tu modifies ton backend)
    static async updateProduct(product: Product): Promise<Product> {
     const res = await fetch(`${this.API_URL_PRODUCTS}/${product.id}`, {
       method: "PUT",

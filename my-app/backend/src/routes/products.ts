@@ -22,6 +22,11 @@ router.get("/", (_req, res) => {
 
 router.post("/", (req, res) => {
   const newProduct = req.body as Product;
+
+  // Générer un ID unique
+  const maxId = products.length ? Math.max(...products.map(p => p.id)) : 0;
+  newProduct.id = maxId + 1;
+  
   products.push(newProduct);
   res.status(201).json(newProduct);
 });

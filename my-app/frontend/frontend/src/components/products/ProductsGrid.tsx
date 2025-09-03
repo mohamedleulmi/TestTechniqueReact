@@ -8,26 +8,29 @@ import {
   type GridRowId,
   GridActionsCellItem,
 } from "@mui/x-data-grid";
-import { Star, StarBorder, Edit as EditIcon, Save as SaveIcon, Close as CancelIcon } from "@mui/icons-material";
+import { Edit as EditIcon, Save as SaveIcon, Close as CancelIcon } from "@mui/icons-material";
 import type { Product } from "./Product";
 import ProductService from "./ProductService";
 import Box from "@mui/material/Box";
 import { RatingEditInputCell } from "./RatingEditInputCell";
 import Rating from "@mui/material/Rating";
-import { Alert, Snackbar } from "@mui/material";
+import { Alert, Button, Snackbar } from "@mui/material";
+import type { Toast } from "./Toast";
 
 const ProductsGrid: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [rowModesModel, setRowModesModel] = useState<GridRowModesModel>({});
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [toast, setToast] = useState<Toast | null>(null);
 
   useEffect(() => {
     const loadProducts = async () => {
       try {
         const data = await ProductService.fetchProducts();
         setProducts(data);
+        setToast({ message: "Products loaded", severity: "info" });
       } catch (error) {
         console.error("Failed to load products:", error);
+        setToast({ message: "Failed to load products", severity: "error" });
       }
     };
     loadProducts();
@@ -46,23 +49,33 @@ const ProductsGrid: React.FC = () => {
 
   const handleRowUpdate = async (newRow: Product) => {
   const error = validateProduct(newRow);
-    if (error) {
-      setErrorMessage(error);
-      throw new Error(error);
+  if (error) {
+    setErrorMessage(error);
+    throw new Error(error);
+  }
+
+  try {
+    let updated: Product;
+    if (newRow.id < 0) {
+      updated = await ProductService.addProduct(newRow);
+      setToast({ message: "Product added successfully", severity: "success" });
+    } else {
+      updated = await ProductService.updateProduct(newRow);
+      setToast({ message: "Product updated successfully", severity: "success" });
     }
 
-    try {
-      const updated = await ProductService.updateProduct(newRow);
-      setProducts((prev) =>
-        prev.map((p) => (p.id === updated.id ? updated : p))
-      );
-      return updated;
-    } catch (err) {
-      setErrorMessage("Failed to update product");
-      console.error(err);
-      return newRow;
-    }
-  };
+    // Mettre à jour la liste côté front
+    setProducts((prev) =>
+      prev.map((p) => (p.id === newRow.id ? updated : p))
+    );
+    return updated;
+  } catch (err) {
+    setErrorMessage("Failed to save product");
+    console.error(err);
+    setToast({ message: "Failed to save product", severity: "error" });
+    return newRow;
+  }
+};
 
   const handleEditClick = (id: GridRowId) => () => {
     setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.Edit } });
@@ -70,6 +83,19 @@ const ProductsGrid: React.FC = () => {
 
   const handleSaveClick = (id: GridRowId) => () => {
     setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.View } });
+  };
+
+  const handleAddClick = () => {
+
+     const tempId = Math.min(0, ...products.map(p => p.id ?? 0)) - 1;
+
+  const newProduct: Product = { id: tempId, name: "", reference: "", price: 0, rating: 0 };
+  setProducts((prev) => [newProduct, ...prev]);
+
+  setRowModesModel((prev) => ({
+    ...prev,
+    [tempId]: { mode: GridRowModes.Edit, fieldToFocus: "name" },
+  }));
   };
 
   const handleCancelClick = (id: GridRowId) => () => {
@@ -115,6 +141,10 @@ const ProductsGrid: React.FC = () => {
 
   return (
     <Box sx={{ height: 400, width: "100%" }}>
+      <Button variant="contained" color="primary" onClick={handleAddClick} sx={{ mb: 2 }}>
+        Add Product
+      </Button>
+
       <DataGrid
         rows={products}
         columns={columns}
@@ -129,14 +159,13 @@ const ProductsGrid: React.FC = () => {
         onProcessRowUpdateError={(error) => console.error(error)}
       />
       <Snackbar
-        open={Boolean(errorMessage)}
-        autoHideDuration={4000}
-        onClose={() => setErrorMessage(null)}
-        message={errorMessage}
+        open={Boolean(toast)}
+        autoHideDuration={toast?.duration || 3000}
+        onClose={() => setToast(null)}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-        > 
-        <Alert severity="error" onClose={() => setErrorMessage(null)} sx={{ mb: 2 }}>
-          {errorMessage}
+      >
+        <Alert severity={toast?.severity} onClose={() => setToast(null)} sx={{ mb: 2 }}>
+          {toast?.message}
         </Alert>
         </Snackbar>
         
