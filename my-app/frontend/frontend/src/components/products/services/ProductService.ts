@@ -1,4 +1,4 @@
-import type { Product } from "./Product";
+import type { Product } from "../models/Product";
 
 export default class ProductService {
   private static API_URL_PRODUCTS = "http://localhost:5000/api/products";
@@ -30,4 +30,11 @@ export default class ProductService {
     if (!res.ok) throw new Error(`Update failed: ${res.status}`);
     return (await res.json()) as Product;
   }
+
+  static async deleteProduct(id: number): Promise<void> {
+  const res = await fetch(`${this.API_URL_PRODUCTS}/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error(`Delete failed: ${res.status}`);
+}
 }

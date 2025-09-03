@@ -8,14 +8,14 @@ import {
   type GridRowId,
   GridActionsCellItem,
 } from "@mui/x-data-grid";
-import { Edit as EditIcon, Save as SaveIcon, Close as CancelIcon } from "@mui/icons-material";
-import type { Product } from "./Product";
-import ProductService from "./ProductService";
+import { Edit as EditIcon, Save as SaveIcon, Close as CancelIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import type { Product } from "./models/Product";
+import ProductService from "./services/ProductService";
 import Box from "@mui/material/Box";
 import { RatingEditInputCell } from "./RatingEditInputCell";
 import Rating from "@mui/material/Rating";
 import { Alert, Button, Snackbar } from "@mui/material";
-import type { Toast } from "./Toast";
+import type { Toast } from "./models/Toast";
 
 const ProductsGrid: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -50,7 +50,6 @@ const ProductsGrid: React.FC = () => {
   const handleRowUpdate = async (newRow: Product) => {
   const error = validateProduct(newRow);
   if (error) {
-    setErrorMessage(error);
     throw new Error(error);
   }
 
@@ -70,7 +69,6 @@ const ProductsGrid: React.FC = () => {
     );
     return updated;
   } catch (err) {
-    setErrorMessage("Failed to save product");
     console.error(err);
     setToast({ message: "Failed to save product", severity: "error" });
     return newRow;
@@ -96,6 +94,22 @@ const ProductsGrid: React.FC = () => {
     ...prev,
     [tempId]: { mode: GridRowModes.Edit, fieldToFocus: "name" },
   }));
+  };
+
+ const  handleDeleteClick = (id: GridRowId) => async () => {
+    try {
+      const numericId = Number(id);
+      if (numericId < 0) {
+        setProducts((prev) => prev.filter((p) => p.id !== numericId));
+        return;
+      }
+      await ProductService.deleteProduct(numericId);
+      setProducts((prev) => prev.filter((p) => p.id !== numericId));
+      setToast({ message: "Product deleted successfully", severity: "success" });
+    } catch (error) {
+      console.error(error);
+      setToast({ message: "Product deletion failed", severity: "error" });
+    }
   };
 
   const handleCancelClick = (id: GridRowId) => () => {
@@ -134,7 +148,10 @@ const ProductsGrid: React.FC = () => {
           ];
         }
 
-        return [<GridActionsCellItem icon={<EditIcon />} label="Edit" onClick={handleEditClick(id)} />];
+        return [
+          <GridActionsCellItem icon={<EditIcon />} label="Edit" onClick={handleEditClick(id)} />,
+          <GridActionsCellItem icon={<DeleteIcon />} label="Delete" onClick={handleDeleteClick(id)} />,
+        ];
       },
     },
   ];
