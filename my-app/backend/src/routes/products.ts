@@ -26,4 +26,15 @@ router.post("/", (req, res) => {
   res.status(201).json(newProduct);
 });
 
+router.put("/:id", (req, res) => {
+  const { id } = req.params;
+  const updatedProduct = req.body;
+
+  const index = products.findIndex((p) => p.id === parseInt(id));
+  if (index === -1) return res.status(404).json({ message: "Product not found" });
+
+  products[index] = { ...products[index], ...updatedProduct };
+  res.json(products[index]);
+});
+
 export default router;

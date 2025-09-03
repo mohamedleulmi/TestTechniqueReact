@@ -22,13 +22,13 @@ export default class ProductService {
   }
 
   // Met à jour un produit (tu peux faire PUT si tu modifies ton backend)
-  static async updateProduct(product: Product): Promise<Product> {
+   static async updateProduct(product: Product): Promise<Product> {
     const res = await fetch(`${this.API_URL_PRODUCTS}/${product.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(product),
     });
-    if (!res.ok) throw new Error(`Update product failed: ${res.status}`);
+    if (!res.ok) throw new Error(`Update failed: ${res.status}`);
     return (await res.json()) as Product;
   }
 }
